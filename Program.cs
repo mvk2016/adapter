@@ -1,63 +1,87 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 using System.Collections;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// YanziConnector sets up a connection to Yanzi Cirrus cloud, where requests and responses are sent.
+/// YanziConnector sets up a websocket to Yanzi Cirrus cloud, where requests and responses are sent.
 /// </summary>
 public class YanziConnector
 {
     private string host;
     private ClientWebSocket socket;
+
     public YanziConnector()
     {
+        Console.WriteLine("Creating Connector");
         host = "wss://mqtt.yanzi.se:443/cirrusAPI";
         socket = new ClientWebSocket();
     }
+
+    static int getTime()
+    {
+        TimeSpan span = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        return (int)span.TotalSeconds;
+    }
+
     /// <summary>
-    /// Asynchronous connection to Cirrus
+    /// Opens a websocket connection to Cirrus
     /// </summary>
     /// <returns></returns>
-    public async Task connect()
+    public void connect()
     {
-        try
-        {
-            System.Diagnostics.Debug.WriteLine("Trying to connect");
-            await socket.ConnectAsync(new Uri(host, UriKind.Absolute), new CancellationToken(true));
-            System.Diagnostics.Debug.WriteLine("Has connected to Yanzi");
-        }
-        catch (WebSocketException e)
-        {
-            System.Diagnostics.Debug.WriteLine("Error: " + e.Message);
-            Console.WriteLine("Error: " + e.Message + " " + e.InnerException);
-            return;
-        }
-
+        Console.WriteLine("Trying to connect");
+        socket.ConnectAsync(new Uri(host, UriKind.Absolute), CancellationToken.None).Wait();
+        Console.WriteLine(socket.State.ToString());
+        Console.WriteLine("Has connected to Yanzi");
     }
 
-    public async Task SendEmptyMessage()
+    public void SendMessage(string s)
     {
-        await SendMessage(new Byte[0]);
+        socket.SendAsync(new ArraySegment<Byte>(Encoding.Unicode.GetBytes(s)), WebSocketMessageType.Text, false, CancellationToken.None).Wait();
     }
 
-    public async Task SendMessage(Byte[] buffer)
+    public void SendLoginRequest()
     {
-        await socket.SendAsync(new ArraySegment<Byte>(buffer), WebSocketMessageType.Text, false, CancellationToken.None);
+        Console.WriteLine("Sending login request");
+        String request = String.Format(
+@"{{
+    ""messageType"": ""LoginRequest""
+    ""username"": ""username"",
+    ""password"": ""password"",
+    ""timeSent"": {0}
+}}", getTime().ToString());
+        SendMessage(request);
+    }
+
+    private async void Listen()
+    {
+        var buffer = new Byte[1000];
+        WebSocketReceiveResult result;
+        Console.WriteLine("Listening");
+        while (true)
+        {
+            result = await socket.ReceiveAsync(new ArraySegment<Byte>(buffer), CancellationToken.None);
+
+            var str = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            Console.WriteLine("{0} {1}", str.Length, str);
+        }
+    }
+
+    public void StartListen()
+    {
+        Listen();
     }
 
     static void Main()
     {
-        System.Diagnostics.Debug.WriteLine("Creating Connector");
         var connector = new YanziConnector();
-        Task connectTask = connector.connect();
-        //connectTask.Wait();
-        /*
-        Console.WriteLine("Trying to send message");
-        connectTask = connector.SendEmptyMessage();
-        connectTask.Wait();
-        Console.WriteLine("Has sent message");
-        */
+        connector.connect();
+        connector.StartListen();
+        connector.SendLoginRequest();
+        Thread.Sleep(10000);
     }
 }

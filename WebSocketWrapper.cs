@@ -4,6 +4,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+
+/// <summary>
+/// Written by xamlmonkey
+/// See https://gist.github.com/xamlmonkey/4737291
+/// </summary>
 public class WebSocketWrapper
 {
     private const int ReceiveChunkSize = 1024;

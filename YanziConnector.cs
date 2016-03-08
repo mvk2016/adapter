@@ -21,7 +21,39 @@ public class YanziConnector
 
     static void OnMessage(string message, WebSocketWrapper ws)
     {
-        Console.WriteLine(request.ParseResponse(message)["messageType"]);
+        //Console.WriteLine(message);
+        var response = request.ParseResponse(message);
+        string type = response["messageType"];
+        Console.WriteLine(type);
+
+        switch (type)
+        {
+            case "LoginResponse":
+                //Console.WriteLine(response["sessionId"]);
+                break;
+
+            case "GetLocationsResponse":
+                ArrayList list = response["list"];
+                // Subscribes to locations given on login
+                foreach(Dictionary<string, dynamic> loc in list)
+                {
+                    string locationId = loc["locationAddress"]["locationId"];
+
+                    var dict = new Dictionary<string, string>
+                    {
+                        ["unitAddress"] = String.Format(@"{{""locationId"":""{0}""}}", locationId),
+                        ["subscriptionType"] = @"{{""resourceType"":""SubscriptionType"",""name"":""defaults""}}"
+                    };
+                    connector.SendMessage(request.MakeRequest("SubscribeRequest", dict));
+                }
+                break;
+
+            case "SubscribeResponse":
+                Console.WriteLine(message);
+                break;
+            default:
+                break;
+        }
     }
 
     static void Main()

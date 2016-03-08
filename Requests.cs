@@ -2,9 +2,11 @@
 using System.Web.Script.Serialization;
 using System.Collections.Generic;
 
+/// <summary>
+/// Handles the formatting of messages to and from Cirrus
+/// </summary>
 public class Requests
 {
-
     private JavaScriptSerializer jss = new JavaScriptSerializer();
 
     /// <summary>
@@ -15,18 +17,6 @@ public class Requests
     {
         TimeSpan span = DateTime.Now.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc));
         return (int)span.TotalSeconds;
-    }
-
-    public string LoginRequest(string username, string password)
-    {
-        string request = string.Format(
-@"{{
- ""messageType"":""LoginRequest"",
- ""username"":""{0}"",
- ""password"":""{1}"",
- ""timeSent"":{2}
-}}", username, password, getTime());
-        return request;
     }
 
     public string MakeRequest(string requestType, Dictionary<string, string> data)

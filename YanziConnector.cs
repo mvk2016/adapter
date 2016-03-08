@@ -13,14 +13,24 @@ using System.Collections.Generic;
 public class YanziConnector
 {
     static string host = "wss://mqtt.yanzi.se:443/cirrusAPI";
-    
+    static string username = "user@example.com";
+    static string password = "password";
+
+    static WebSocketWrapper connector;
+    static Requests request;
+
+    static void OnMessage(string message, WebSocketWrapper ws)
+    {
+        Console.WriteLine(request.ParseResponse(message)["messageType"]);
+    }
+
     static void Main()
     {
-        var connector = WebSocketWrapper.Create(host);
-        var request = new Requests();
+        connector = WebSocketWrapper.Create(host);
+        request = new Requests();
 
         connector.OnConnect((WebSocketWrapper ws) => Console.WriteLine("Has connected"));
-        connector.OnMessage((string message, WebSocketWrapper ws) => Console.WriteLine(request.ParseResponse(message)["messageType"]));
+        connector.OnMessage(OnMessage);
         connector.OnDisconnect((WebSocketWrapper ws) => Console.WriteLine("Has disconnected"));
 
         connector.Connect();
@@ -34,8 +44,8 @@ public class YanziConnector
         Console.WriteLine("State: " + connector.State());
 
         var dict = new Dictionary<string, string>{
-            ["username"] = "user@example.com",
-            ["password"] = "password"
+            ["username"] = username,
+            ["password"] = password
         };
 
         connector.SendMessage(request.MakeRequest("LoginRequest", dict));

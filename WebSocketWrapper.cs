@@ -23,6 +23,9 @@ public class WebSocketWrapper
     private Action<string, WebSocketWrapper> _onMessage;
     private Action<WebSocketWrapper> _onDisconnected;
 
+    // Still not sure if a mutex prevents exceptions...
+    private Mutex sendMutex = new Mutex();
+
     protected WebSocketWrapper(string uri)
     {
         _ws = new ClientWebSocket();
@@ -89,6 +92,11 @@ public class WebSocketWrapper
         return _ws.State;
     }
 
+    public async void Close()
+    {
+        await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", _cancellationToken);
+    }
+
     /// <summary>
     /// Send a message to the WebSocket server.
     /// </summary>
@@ -98,7 +106,7 @@ public class WebSocketWrapper
         SendMessageAsync(message);
     }
 
-    private async void SendMessageAsync(string message)
+    private void SendMessageAsync(string message)
     {
         if (_ws.State != WebSocketState.Open)
         {
@@ -119,7 +127,9 @@ public class WebSocketWrapper
                 count = messageBuffer.Length - offset;
             }
 
-            await _ws.SendAsync(new ArraySegment<byte>(messageBuffer, offset, count), WebSocketMessageType.Text, lastMessage, _cancellationToken);
+            sendMutex.WaitOne();
+            _ws.SendAsync(new ArraySegment<byte>(messageBuffer, offset, count), WebSocketMessageType.Text, lastMessage, _cancellationToken).Wait();
+            sendMutex.ReleaseMutex();
         }
     }
 

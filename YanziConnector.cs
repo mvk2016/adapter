@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 /// <summary>
-/// Manages the workflow of datatransmitting over a websocket to Cirrus
+/// Manages the workflow of data transmitting over a websocket to Cirrus
 /// </summary>
 public class YanziConnector
 {
@@ -16,51 +16,77 @@ public class YanziConnector
     static string username = "user@example.com";
     static string password = "password";
 
-    static WebSocketWrapper connector;
-    static Requests request;
+    static WebSocketWrapper connector = WebSocketWrapper.Create(host);
+    static Requests request = new Requests();
+    static EventHubConnector ehconnector = new EventHubConnector();
+
+    static bool shouldSubscribe = false;
 
     static void OnMessage(string message, WebSocketWrapper ws)
     {
-        //Console.WriteLine(message);
-        var response = request.ParseResponse(message);
-        string type = response["messageType"];
-        Console.WriteLine(type);
+        if (message == null || message == "")
+            return;
 
-        switch (type)
+        try
         {
-            case "LoginResponse":
-                //Console.WriteLine(response["sessionId"]);
-                break;
+            var type = request.ParseResponse<JSONMessage.Response>(message).messageType;
+            Console.WriteLine(type);
 
-            case "GetLocationsResponse":
-                ArrayList list = response["list"];
-                // Subscribes to locations given on login
-                foreach(Dictionary<string, dynamic> loc in list)
-                {
-                    string locationId = loc["locationAddress"]["locationId"];
+            switch (type)
+            {
+                case "LoginResponse":
+                    var loginResponse = request.ParseResponse<JSONMessage.LoginResponse>(message);
 
-                    var dict = new Dictionary<string, string>
+                    if (loginResponse.responseCode["name"] != "success")
                     {
-                        ["unitAddress"] = String.Format(@"{{""locationId"":""{0}""}}", locationId),
-                        ["subscriptionType"] = @"{{""resourceType"":""SubscriptionType"",""name"":""defaults""}}"
-                    };
-                    connector.SendMessage(request.MakeRequest("SubscribeRequest", dict));
-                }
-                break;
+                        Console.WriteLine("Login failed");
+                        connector.Close();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Login success");
+                    }
+                    break;
 
-            case "SubscribeResponse":
-                Console.WriteLine(message);
-                break;
-            default:
-                break;
+                case "GetLocationsResponse":
+                    var locationResponse = request.ParseResponse<JSONMessage.GetLocationsResponse>(message);
+
+                    if (!shouldSubscribe) break;
+
+                    foreach(var loc in locationResponse.list)
+                    {
+                        string locationId = loc.locationAddress["locationId"];
+                        var subscribeRequest = new JSONMessage.SubscribeRequest()
+                        {
+                            unitAddress = new Dictionary<string, string>{["locationId"] = locationId },
+                            subscriptionType = new Dictionary<string, string> { ["name"] = "default", ["resourceType"] = "SubscriptionType" }
+                        };
+                        connector.SendMessage(request.MakeRequest(subscribeRequest));
+                    }
+                    break;
+
+                case "SubscribeResponse":
+                    //Console.WriteLine(message);
+                    break;
+
+                case "SubscribeData":
+                    //Console.WriteLine(message);
+                    break;
+                default:
+                    break;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(message);
+            Console.WriteLine(e);
+            connector.Close();
+            return;
         }
     }
 
     static void Main()
     {
-        connector = WebSocketWrapper.Create(host);
-        request = new Requests();
-
         connector.OnConnect((WebSocketWrapper ws) => Console.WriteLine("Has connected"));
         connector.OnMessage(OnMessage);
         connector.OnDisconnect((WebSocketWrapper ws) => Console.WriteLine("Has disconnected"));
@@ -68,19 +94,24 @@ public class YanziConnector
         connector.Connect();
 
         // Wait until socket is no longer trying to connect
-        while(connector.State().Equals(WebSocketState.Connecting))
-        {
+        while (connector.State() == WebSocketState.Connecting)
             Thread.Sleep(100);
+
+        if(connector.State() != WebSocketState.Open)
+        {
+            Console.WriteLine("Could not connect to Cirrus");
+            return;
         }
 
-        Console.WriteLine("State: " + connector.State());
-
-        var dict = new Dictionary<string, string>{
-            ["username"] = username,
-            ["password"] = password
+        var loginRequest = new JSONMessage.LoginRequest()
+        {
+            username = username,
+            password = password,
+            timeSent = DateTime.Now
         };
+        string req = request.MakeRequest(loginRequest);
+        connector.SendMessage(req);
 
-        connector.SendMessage(request.MakeRequest("LoginRequest", dict));
         Console.ReadLine();
     }
 }

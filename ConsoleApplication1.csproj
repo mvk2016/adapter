@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JSONMessage.cs" />
     <Compile Include="EventHubConnector.cs" />
     <Compile Include="Requests.cs" />
     <Compile Include="YanziConnector.cs" />

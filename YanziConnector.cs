@@ -18,7 +18,7 @@ public class YanziConnector
 
     static WebSocketWrapper connector = WebSocketWrapper.Create(host);
     static Requests request = new Requests();
-    static EventHubConnector ehconnector = new EventHubConnector();
+    static EventHubConnector eventHub = new EventHubConnector();
 
     static bool shouldSubscribe = false;
 
@@ -71,6 +71,7 @@ public class YanziConnector
 
                 case "SubscribeData":
                     //Console.WriteLine(message);
+                    eventHub.SendMessage(message);
                     break;
                 default:
                     break;

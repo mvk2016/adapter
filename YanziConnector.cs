@@ -17,7 +17,7 @@ public class YanziConnector
     static private string password = "password";
 
     static private WebSocketWrapper connector;
-    static private Requests request = new Requests();
+    static private JSONConvert json = new JSONConvert();
     static private EventHubConnector eventHub = new EventHubConnector();
 
     static private bool shouldSubscribe = false;
@@ -29,13 +29,13 @@ public class YanziConnector
 
         try
         {
-            var type = request.ParseResponse<Response>(message).messageType;
+            var type = json.ParseResponse<Response>(message).messageType;
             Console.WriteLine(type);
 
             switch (type)
             {
                 case "LoginResponse":
-                    var loginResponse = request.ParseResponse<LoginResponse>(message);
+                    var loginResponse = json.ParseResponse<LoginResponse>(message);
 
                     if (loginResponse.responseCode["name"] != "success")
                     {
@@ -49,7 +49,7 @@ public class YanziConnector
                     break;
 
                 case "GetLocationsResponse":
-                    var locationResponse = request.ParseResponse<GetLocationsResponse>(message);
+                    var locationResponse = json.ParseResponse<GetLocationsResponse>(message);
 
                     if (!shouldSubscribe) break;
 
@@ -61,8 +61,8 @@ public class YanziConnector
                             unitAddress = new { locationId = locationId },
                             subscriptionType = new {name = "default", resourceType = "SubscriptionType"}
                         };
-                        Console.WriteLine(request.MakeRequest(subscribeRequest));
-                        connector.SendMessage(request.MakeRequest(subscribeRequest));
+                        Console.WriteLine(json.MakeRequest(subscribeRequest));
+                        connector.SendMessage(json.MakeRequest(subscribeRequest));
                     }
                     break;
 
@@ -120,7 +120,7 @@ public class YanziConnector
             password = password,
             timeSent = DateTime.Now
         };
-        string req = request.MakeRequest(loginRequest);
+        string req = json.MakeRequest(loginRequest);
         connector.SendMessage(req);
     }
 

@@ -54,7 +54,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="JSONMessage.cs" />
+    <Compile Include="GetLocationsResponse.cs" />
+    <Compile Include="LocationDTO.cs" />
+    <Compile Include="LoginResponse.cs" />
+    <Compile Include="Response.cs" />
+    <Compile Include="SubscribeRequest.cs" />
+    <Compile Include="LoginRequest.cs" />
+    <Compile Include="Request.cs" />
     <Compile Include="EventHubConnector.cs" />
     <Compile Include="Requests.cs" />
     <Compile Include="YanziConnector.cs" />

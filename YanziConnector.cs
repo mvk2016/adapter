@@ -12,15 +12,15 @@ using System.Collections.Generic;
 /// </summary>
 public class YanziConnector
 {
-    static string host = "wss://mqtt.yanzi.se:443/cirrusAPI";
-    static string username = "user@example.com";
-    static string password = "password";
+    static private string host = "wss://mqtt.yanzi.se:443/cirrusAPI";
+    static private string username = "user@example.com";
+    static private string password = "password";
 
-    static WebSocketWrapper connector = WebSocketWrapper.Create(host);
-    static Requests request = new Requests();
-    static EventHubConnector eventHub = new EventHubConnector();
+    static private WebSocketWrapper connector;
+    static private Requests request = new Requests();
+    static private EventHubConnector eventHub = new EventHubConnector();
 
-    static bool shouldSubscribe = false;
+    static private bool shouldSubscribe = false;
 
     static void OnMessage(string message, WebSocketWrapper ws)
     {
@@ -29,13 +29,13 @@ public class YanziConnector
 
         try
         {
-            var type = request.ParseResponse<JSONMessage.Response>(message).messageType;
+            var type = request.ParseResponse<Response>(message).messageType;
             Console.WriteLine(type);
 
             switch (type)
             {
                 case "LoginResponse":
-                    var loginResponse = request.ParseResponse<JSONMessage.LoginResponse>(message);
+                    var loginResponse = request.ParseResponse<LoginResponse>(message);
 
                     if (loginResponse.responseCode["name"] != "success")
                     {
@@ -49,28 +49,28 @@ public class YanziConnector
                     break;
 
                 case "GetLocationsResponse":
-                    var locationResponse = request.ParseResponse<JSONMessage.GetLocationsResponse>(message);
+                    var locationResponse = request.ParseResponse<GetLocationsResponse>(message);
 
                     if (!shouldSubscribe) break;
 
                     foreach(var loc in locationResponse.list)
                     {
                         string locationId = loc.locationAddress["locationId"];
-                        var subscribeRequest = new JSONMessage.SubscribeRequest()
+                        var subscribeRequest = new SubscribeRequest()
                         {
-                            unitAddress = new Dictionary<string, string>{["locationId"] = locationId },
-                            subscriptionType = new Dictionary<string, string> { ["name"] = "default", ["resourceType"] = "SubscriptionType" }
+                            unitAddress = new { locationId = locationId },
+                            subscriptionType = new {name = "default", resourceType = "SubscriptionType"}
                         };
+                        Console.WriteLine(request.MakeRequest(subscribeRequest));
                         connector.SendMessage(request.MakeRequest(subscribeRequest));
                     }
                     break;
 
                 case "SubscribeResponse":
-                    //Console.WriteLine(message);
                     break;
 
                 case "SubscribeData":
-                    //Console.WriteLine(message);
+                    Console.WriteLine(message);
                     eventHub.SendMessage(message);
                     break;
                 default:
@@ -86,8 +86,14 @@ public class YanziConnector
         }
     }
 
-    static void Main()
+    /// <summary>
+    /// Connects to Cirrus
+    /// </summary>
+    /// <returns>If the connection was successfully opened</returns>
+    static bool Connect()
     {
+        connector = WebSocketWrapper.Create(host);
+
         connector.OnConnect((WebSocketWrapper ws) => Console.WriteLine("Has connected"));
         connector.OnMessage(OnMessage);
         connector.OnDisconnect((WebSocketWrapper ws) => Console.WriteLine("Has disconnected"));
@@ -98,13 +104,17 @@ public class YanziConnector
         while (connector.State() == WebSocketState.Connecting)
             Thread.Sleep(100);
 
-        if(connector.State() != WebSocketState.Open)
+        if (connector.State() != WebSocketState.Open)
         {
             Console.WriteLine("Could not connect to Cirrus");
-            return;
+            return false;
         }
+        return true;
+    }
 
-        var loginRequest = new JSONMessage.LoginRequest()
+    static void Login()
+    {
+        var loginRequest = new LoginRequest()
         {
             username = username,
             password = password,
@@ -112,6 +122,14 @@ public class YanziConnector
         };
         string req = request.MakeRequest(loginRequest);
         connector.SendMessage(req);
+    }
+
+    static void Main()
+    {
+        bool connected = Connect();
+        if (!connected) return;
+
+        Login();
 
         Console.ReadLine();
     }

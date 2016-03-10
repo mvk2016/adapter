@@ -14,28 +14,22 @@ class EventHubConnector
     static string eventHubName = "mvkdemoeventhub";
     static string connectionString = "Endpoint=sb://mvkdemoeventhub-ns.servicebus.windows.net/;SharedAccessKeyName=SendRule;SharedAccessKey=1Cavv5ysfeKU9aYjESuXBm7+UKX6+qOJRG0Bioi0Rug=";
 
-    EventHubClient eventHubClient;
-
-    public EventHubConnector()
-    {
-        eventHubClient = EventHubClient.CreateFromConnectionString(connectionString, eventHubName);
-    }
+    EventHubClient eventHubClient = EventHubClient.CreateFromConnectionString(connectionString, eventHubName);
 
     public void SendMessage(string message)
     {
         eventHubClient.Send(new EventData(Encoding.UTF8.GetBytes(message)));
     }
 
-    static public void SendingRandomMessages()
+    public void SendingRandomMessages()
     {
-        var eventHubClient = EventHubClient.CreateFromConnectionString(connectionString, eventHubName);
         while (true)
         {
             try
             {
                 var message = Guid.NewGuid().ToString();
                 Console.WriteLine("{0} > Sending message: {1}", DateTime.Now, message);
-                eventHubClient.Send(new EventData(Encoding.UTF8.GetBytes(message)));
+                SendMessage(message);
             }
             catch (Exception exception)
             {

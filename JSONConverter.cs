@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Handles the formatting of messages to and from Cirrus
 /// </summary>
-public class JSONConvert
+public class JSONConverter
 {
     private JavaScriptSerializer jss = new JavaScriptSerializer();
 

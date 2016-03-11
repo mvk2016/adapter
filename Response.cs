@@ -8,4 +8,9 @@ public class Response
 {
     public string messageType;
     public long timeSent;
+
+    public void Action()
+    {
+
+    }
 }

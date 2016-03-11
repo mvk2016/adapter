@@ -12,17 +12,10 @@ using System.Collections.Generic;
 /// </summary>
 public class YanziConnector
 {
-    static private string host = "wss://mqtt.yanzi.se:443/cirrusAPI";
-    static private string username = "user@example.com";
-    static private string password = "password";
+    private WebSocketWrapper connector;
+    private JSONConverter json = new JSONConverter();
 
-    static private WebSocketWrapper connector;
-    static private JSONConvert json = new JSONConvert();
-    static private EventHubConnector eventHub = new EventHubConnector();
-
-    static private bool shouldSubscribe = false;
-
-    static void OnMessage(string message, WebSocketWrapper ws)
+    void OnMessage(string message, WebSocketWrapper ws)
     {
         if (message == null || message == "")
             return;
@@ -49,21 +42,6 @@ public class YanziConnector
                     break;
 
                 case "GetLocationsResponse":
-                    var locationResponse = json.ParseResponse<GetLocationsResponse>(message);
-
-                    if (!shouldSubscribe) break;
-
-                    foreach(var loc in locationResponse.list)
-                    {
-                        string locationId = loc.locationAddress["locationId"];
-                        var subscribeRequest = new SubscribeRequest()
-                        {
-                            unitAddress = new { locationId = locationId },
-                            subscriptionType = new {name = "default", resourceType = "SubscriptionType"}
-                        };
-                        Console.WriteLine(json.MakeRequest(subscribeRequest));
-                        connector.SendMessage(json.MakeRequest(subscribeRequest));
-                    }
                     break;
 
                 case "SubscribeResponse":
@@ -71,7 +49,7 @@ public class YanziConnector
 
                 case "SubscribeData":
                     Console.WriteLine(message);
-                    eventHub.SendMessage(message);
+                    EventHubConnector.SendMessage(message);
                     break;
                 default:
                     break;
@@ -87,10 +65,23 @@ public class YanziConnector
     }
 
     /// <summary>
+    /// Subscribes to given location
+    /// </summary>
+    /// <param name="locationId">ID of location to subscribe to</param>
+    public void Subscribe(string locationId)
+    {
+        var subscribeRequest = new SubscribeRequest()
+        {
+            unitAddress = new { locationId = locationId },
+            subscriptionType = new { name = "default", resourceType = "SubscriptionType" }
+        };
+        connector.SendMessage(json.MakeRequest(subscribeRequest));
+    }
+    /// <summary>
     /// Connects to Cirrus
     /// </summary>
     /// <returns>If the connection was successfully opened</returns>
-    static bool Connect()
+    public bool Connect(string host)
     {
         connector = WebSocketWrapper.Create(host);
 
@@ -112,7 +103,7 @@ public class YanziConnector
         return true;
     }
 
-    static void Login()
+    public void Login(string username, string password)
     {
         var loginRequest = new LoginRequest()
         {
@@ -122,15 +113,5 @@ public class YanziConnector
         };
         string req = json.MakeRequest(loginRequest);
         connector.SendMessage(req);
-    }
-
-    static void Main()
-    {
-        bool connected = Connect();
-        if (!connected) return;
-
-        Login();
-
-        Console.ReadLine();
     }
 }

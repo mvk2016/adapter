@@ -94,7 +94,8 @@ public class WebSocketWrapper
 
     public async void Close()
     {
-        await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", _cancellationToken);
+        if(_ws.State == WebSocketState.Open)
+            await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", _cancellationToken);
     }
 
     /// <summary>

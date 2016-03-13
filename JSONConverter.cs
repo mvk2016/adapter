@@ -14,11 +14,6 @@ public class JSONConverter
         return jss.Serialize(obj);
     }
 
-    public Dictionary<string, dynamic> ParseResponse(string response)
-    {
-        return jss.Deserialize<Dictionary<string, dynamic>>(response);
-    }
-
     public T ParseResponse<T>(string response)
     {
         return jss.Deserialize<T>(response);

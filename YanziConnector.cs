@@ -6,6 +6,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Reflection;
 
 /// <summary>
 /// Manages the workflow of data transmitting over a websocket to Cirrus
@@ -23,45 +24,31 @@ public class YanziConnector
         try
         {
             var type = json.ParseResponse<Response>(message).messageType;
-            Console.WriteLine(type);
 
-            switch (type)
-            {
-                case "LoginResponse":
-                    var loginResponse = json.ParseResponse<LoginResponse>(message);
+            Response response = new Response();
 
-                    if (loginResponse.responseCode["name"] != "success")
-                    {
-                        Console.WriteLine("Login failed");
-                        connector.Close();
-                    }
-                    else
-                    {
-                        Console.WriteLine("Login success");
-                    }
-                    break;
+            Type t = Type.GetType(type);
 
-                case "GetLocationsResponse":
-                    break;
+            if (t == null) t = typeof(Response);
 
-                case "SubscribeResponse":
-                    break;
+            MethodInfo method = typeof(JSONConverter).GetMethod("ParseResponse");
+            MethodInfo generic = method.MakeGenericMethod(t);
+            response = generic.Invoke(json, new object[]{ message }) as Response;
 
-                case "SubscribeData":
-                    Console.WriteLine(message);
-                    EventHubConnector.SendMessage(message);
-                    break;
-                default:
-                    break;
-            }
+            response.Action(this);
         }
         catch (Exception e)
         {
             Console.WriteLine(message);
             Console.WriteLine(e);
-            connector.Close();
+            Close();
             return;
         }
+    }
+
+    public void Close()
+    {
+        connector.Close();
     }
 
     /// <summary>

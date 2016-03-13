@@ -57,8 +57,9 @@
     <Compile Include="GetLocationsResponse.cs" />
     <Compile Include="LocationDTO.cs" />
     <Compile Include="LoginResponse.cs" />
-    <Compile Include="Main.cs" />
+    <Compile Include="MainClass.cs" />
     <Compile Include="Response.cs" />
+    <Compile Include="SubscribeData.cs" />
     <Compile Include="SubscribeRequest.cs" />
     <Compile Include="LoginRequest.cs" />
     <Compile Include="Request.cs" />

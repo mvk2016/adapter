@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public class MainClass
+namespace ConsoleApplication1.DataSources
 {
-    static void Main()
+    interface DataSource
     {
-        new YanziConnector();
-        Console.ReadLine();
+        void OnEvent();
     }
-
 }

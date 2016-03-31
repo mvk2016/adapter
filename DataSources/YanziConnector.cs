@@ -13,8 +13,17 @@ using System.Reflection;
 /// </summary>
 public class YanziConnector
 {
-    private WebSocketWrapper connector;
+    private WebSocketWrapper socket;
     private JSONConverter json = new JSONConverter();
+
+    public YanziConnector()
+    {
+        if (!Connect()) return;
+
+        Login();
+
+        Subscribe();
+    }
 
     void OnMessage(string message, WebSocketWrapper ws)
     {
@@ -23,19 +32,21 @@ public class YanziConnector
 
         try
         {
-            var type = json.ParseResponse<Response>(message).messageType;
+            json.ParseMessage<Response>(message).Action();
+
+            /*var type = json.ParseMessage<Response>(message).messageType;
 
             Response response = new Response();
 
             Type t = Type.GetType(type);
 
             if (t == null) t = typeof(Response);
-
+           
             MethodInfo method = typeof(JSONConverter).GetMethod("ParseResponse");
             MethodInfo generic = method.MakeGenericMethod(t);
             response = generic.Invoke(json, new object[]{ message }) as Response;
 
-            response.Action(this);
+            response.Action();*/
         }
         catch (Exception e)
         {
@@ -46,43 +57,42 @@ public class YanziConnector
         }
     }
 
-    public void Close()
-    {
-        connector.Close();
-    }
-
     /// <summary>
     /// Subscribes to given location
     /// </summary>
     /// <param name="locationId">ID of location to subscribe to</param>
-    public void Subscribe(string locationId)
+    public void Subscribe()
     {
         var subscribeRequest = new SubscribeRequest()
         {
-            unitAddress = new { locationId = locationId },
+            unitAddress = new { locationId = Config.ReadSetting("YanziLocation") },
             subscriptionType = new { name = "default", resourceType = "SubscriptionType" }
         };
-        connector.SendMessage(json.MakeRequest(subscribeRequest));
+        socket.SendMessage(json.MakeRequest(subscribeRequest));
     }
     /// <summary>
     /// Connects to Cirrus
     /// </summary>
     /// <returns>If the connection was successfully opened</returns>
-    public bool Connect(string host)
+    public bool Connect()
     {
-        connector = WebSocketWrapper.Create(host);
+        socket = WebSocketWrapper.Create(Config.ReadSetting("YanziHost"));
 
-        connector.OnConnect((WebSocketWrapper ws) => Console.WriteLine("Has connected"));
-        connector.OnMessage(OnMessage);
-        connector.OnDisconnect((WebSocketWrapper ws) => Console.WriteLine("Has disconnected"));
+        socket.OnConnect((WebSocketWrapper ws) => Console.WriteLine("Has connected"));
+        socket.OnMessage(OnMessage);
+        socket.OnDisconnect((WebSocketWrapper ws) => Console.WriteLine("Has disconnected"));
 
-        connector.Connect();
+        socket.Connect();
 
         // Wait until socket is no longer trying to connect
-        while (connector.State() == WebSocketState.Connecting)
+        while (socket.State() == WebSocketState.Connecting)
+        {
             Thread.Sleep(100);
+            Console.WriteLine("Connecting");
 
-        if (connector.State() != WebSocketState.Open)
+        }
+
+        if (socket.State() != WebSocketState.Open)
         {
             Console.WriteLine("Could not connect to Cirrus");
             return false;
@@ -90,15 +100,19 @@ public class YanziConnector
         return true;
     }
 
-    public void Login(string username, string password)
+    public void Login()
     {
         var loginRequest = new LoginRequest()
         {
-            username = username,
-            password = password,
+            username = Config.ReadSetting("YanziUser"),
+            password = Config.ReadSetting("YanziPass"),
             timeSent = DateTime.Now
         };
-        string req = json.MakeRequest(loginRequest);
-        connector.SendMessage(req);
+        socket.SendMessage(json.MakeRequest(loginRequest));
+    }
+
+    public void Close()
+    {
+        socket.Close();
     }
 }

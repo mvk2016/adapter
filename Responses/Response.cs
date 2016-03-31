@@ -9,7 +9,7 @@ public class Response
     public string messageType;
     public long timeSent;
 
-    public virtual void Action(YanziConnector yanzi)
+    public virtual void Action()
     {
         Console.WriteLine(messageType);
     }

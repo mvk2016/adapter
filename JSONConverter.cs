@@ -9,12 +9,12 @@ public class JSONConverter
 {
     private JavaScriptSerializer jss = new JavaScriptSerializer();
 
-    public string MakeRequest(Object obj)
+    public string MakeRequest(Dictionary<string, dynamic> data)
     {
-        return jss.Serialize(obj);
+        return jss.Serialize(data);
     }
 
-    public T ParseResponse<T>(string response)
+    public T ParseMessage<T>(string response)
     {
         return jss.Deserialize<T>(response);
     }

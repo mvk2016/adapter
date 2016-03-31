@@ -11,10 +11,8 @@ using Microsoft.ServiceBus.Messaging;
 /// </summary>
 public class EventHubConnector
 {
-    static string eventHubName = "mvkdemoeventhub";
-    static string connectionString = "Endpoint=sb://mvkdemoeventhub-ns.servicebus.windows.net/;SharedAccessKeyName=SendRule;SharedAccessKey=1Cavv5ysfeKU9aYjESuXBm7+UKX6+qOJRG0Bioi0Rug=";
 
-    static EventHubClient eventHubClient = EventHubClient.CreateFromConnectionString(connectionString, eventHubName);
+    static EventHubClient eventHubClient = EventHubClient.CreateFromConnectionString(Config.ReadSetting("SourceHubConnectionString"), Config.ReadSetting("SourceHubName"));
 
     static public void SendMessage(string message)
     {

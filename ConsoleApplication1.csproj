@@ -42,6 +42,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
@@ -54,19 +55,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GetLocationsResponse.cs" />
-    <Compile Include="LocationDTO.cs" />
-    <Compile Include="LoginResponse.cs" />
+    <Compile Include="Config.cs" />
+    <Compile Include="DataSources\DataSource.cs" />
+    <Compile Include="Responses\GetLocationsResponse.cs" />
+    <Compile Include="Responses\LocationDTO.cs" />
+    <Compile Include="Responses\LoginResponse.cs" />
     <Compile Include="MainClass.cs" />
-    <Compile Include="Response.cs" />
-    <Compile Include="SubscribeData.cs" />
-    <Compile Include="SubscribeRequest.cs" />
-    <Compile Include="LoginRequest.cs" />
-    <Compile Include="Request.cs" />
-    <Compile Include="EventHubConnector.cs" />
+    <Compile Include="Responses\Response.cs" />
+    <Compile Include="Responses\SubscribeData.cs" />
+    <Compile Include="Requests\LoginRequest.cs" />
+    <Compile Include="Requests\Request.cs" />
+    <Compile Include="DataTargets\EventHubConnector.cs" />
     <Compile Include="JSONConverter.cs" />
-    <Compile Include="YanziConnector.cs" />
+    <Compile Include="DataSources\YanziConnector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Requests\SubscribeRequest.cs" />
     <Compile Include="WebSocketWrapper.cs" />
   </ItemGroup>
   <ItemGroup>

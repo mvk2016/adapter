@@ -10,9 +10,9 @@ class SubscribeData : Response
     public static JSONConverter json = new JSONConverter();
 
     public List<Object> list;
-    public override void Action(YanziConnector yanzi)
+    public override void Action()
     {
-        base.Action(yanzi);
+        base.Action();
         string req = json.MakeRequest(list[0]);
         //Console.WriteLine(req);
         EventHubConnector.SendMessage(req);

@@ -9,12 +9,11 @@ public class LoginResponse : Response
     public string sessionId;
     public Dictionary<string, string> responseCode;
 
-    public override void Action(YanziConnector yanzi)
+    public override void Action()
     {
         if (responseCode["name"] != "success")
         {
             Console.WriteLine("Login failed");
-            yanzi.Close();
         }
         else
         {

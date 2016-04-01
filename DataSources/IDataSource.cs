@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AzureWSBridge.DataSources
 {
-    interface DataSource
+    interface IDataSource
     {
         void OnEvent();
     }

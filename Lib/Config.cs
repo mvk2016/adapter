@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Configuration;
 
-class Config
+namespace AzureWSBridge.Lib
 {
-    public static string ReadSetting(string key)
+    class Config
     {
+        public static string ReadSetting(string key)
+        {
             var value = ConfigurationManager.AppSettings[key];
             if(value == null)
             {
@@ -12,5 +14,6 @@ class Config
                 System.Environment.Exit(1);
             }
             return value;
+        }
     }
 }

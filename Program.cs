@@ -1,13 +1,19 @@
 ﻿using System;
 using AzureWSBridge.DataSources;
+using AzureWSBridge.Lib;
 
 namespace AzureWSBridge
 {    
-    public class Program
+    public static class Program
     {
-        static void Main()
+        public static void Main(string[] args)
         {
+            /*
             new CirrusDataSource();
+            Console.ReadLine();
+            */
+
+            Console.WriteLine(Config.ReadSetting("YanziHost"));
             Console.ReadLine();
         }
 

@@ -13,7 +13,6 @@ namespace AzureWSBridge.DataSources
     public class CirrusDataSource
     {
         private WebSocketWrapper socket;
-        private JSONConverter json = new JSONConverter();
 
         public CirrusDataSource()
         {
@@ -31,7 +30,7 @@ namespace AzureWSBridge.DataSources
 
             try
             {
-                json.ParseMessage<Response>(message).Action();
+                // json.ParseMessage<Response>(message).Action();
 
                 /*var type = json.ParseMessage<Response>(message).messageType;
 
@@ -67,7 +66,7 @@ namespace AzureWSBridge.DataSources
                 unitAddress = new { locationId = Config.ReadSetting("YanziLocation") },
                 subscriptionType = new { name = "default", resourceType = "SubscriptionType" }
             };
-            socket.SendMessage(json.MakeRequest(subscribeRequest));
+            // socket.SendMessage(json.MakeRequest(subscribeRequest));
         }
         /// <summary>
         /// Connects to Cirrus
@@ -84,14 +83,14 @@ namespace AzureWSBridge.DataSources
             socket.Connect();
 
             // Wait until socket is no longer trying to connect
-            while (socket.State() == WebSocketState.Connecting)
+            // while (socket.State() == WebSocketState.Connecting)
             {
                 Thread.Sleep(100);
                 Console.WriteLine("Connecting");
 
             }
 
-            if (socket.State() != WebSocketState.Open)
+            // if (socket.State() != WebSocketState.Open)
             {
                 Console.WriteLine("Could not connect to Cirrus");
                 return false;
@@ -107,12 +106,12 @@ namespace AzureWSBridge.DataSources
                 password = Config.ReadSetting("YanziPass"),
                 timeSent = DateTime.Now
             };
-            socket.SendMessage(json.MakeRequest(loginRequest));
+            // socket.SendMessage(json.MakeRequest(loginRequest));
         }
 
         public void Close()
         {
-            socket.Close();
+            // socket.Close();
         }
     }
 }

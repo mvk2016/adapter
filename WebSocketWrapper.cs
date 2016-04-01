@@ -4,9 +4,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 /// <summary>
-/// Written by xamlmonkey
+/// Originally written by xamlmonkey, with OnReceive logic added by Mauritz Zachrisson
 /// See https://gist.github.com/xamlmonkey/4737291
 /// </summary>
 public class WebSocketWrapper
@@ -22,9 +21,6 @@ public class WebSocketWrapper
     private Action<WebSocketWrapper> _onConnected;
     private Action<string, WebSocketWrapper> _onMessage;
     private Action<WebSocketWrapper> _onDisconnected;
-
-    // Still not sure if a mutex prevents exceptions...
-    private Mutex sendMutex = new Mutex();
 
     protected WebSocketWrapper(string uri)
     {
@@ -58,7 +54,6 @@ public class WebSocketWrapper
     /// Set the Action to call when the connection has been established.
     /// </summary>
     /// <param name="onConnect">The Action to call.</param>
-    /// <returns></returns>
     public WebSocketWrapper OnConnect(Action<WebSocketWrapper> onConnect)
     {
         _onConnected = onConnect;
@@ -69,7 +64,6 @@ public class WebSocketWrapper
     /// Set the Action to call when the connection has been terminated.
     /// </summary>
     /// <param name="onDisconnect">The Action to call</param>
-    /// <returns></returns>
     public WebSocketWrapper OnDisconnect(Action<WebSocketWrapper> onDisconnect)
     {
         _onDisconnected = onDisconnect;
@@ -80,22 +74,10 @@ public class WebSocketWrapper
     /// Set the Action to call when a messages has been received.
     /// </summary>
     /// <param name="onMessage">The Action to call.</param>
-    /// <returns></returns>
     public WebSocketWrapper OnMessage(Action<string, WebSocketWrapper> onMessage)
     {
         _onMessage = onMessage;
         return this;
-    }
-
-    public WebSocketState State()
-    {
-        return _ws.State;
-    }
-
-    public async void Close()
-    {
-        if(_ws.State == WebSocketState.Open)
-            await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", _cancellationToken);
     }
 
     /// <summary>
@@ -107,13 +89,61 @@ public class WebSocketWrapper
         SendMessageAsync(message);
     }
 
-    private void SendMessageAsync(string message)
+    /// <summary>
+    /// Wait for the reception of a single string message, then run a given Action.
+    /// </summary>
+    /// <param name="onReceive">The Action to call.</param>
+    public WebSocketWrapper ReceiveMessage(Action<WebSocketWrapper> onReceive)
+    {
+        ReceiveMessageAsync(onReceive);
+        return this;
+    }
+
+    private async void ReceiveMessageAsync(Action<WebSocketWrapper> onReceive)
+    {
+        var buffer = new byte[ReceiveChunkSize];
+
+        try
+        {
+            var stringResult = new StringBuilder();
+
+            WebSocketReceiveResult result;
+            do
+            {
+                result = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), _cancellationToken);
+
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    await
+                        _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                    CallOnDisconnected();
+                }
+                else
+                {
+                    var str = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    stringResult.Append(str);
+                }
+
+            } while (!result.EndOfMessage);
+
+            if (_onMessage != null)
+                RunInTask(() => onReceive(this));
+        }
+        catch (Exception)
+        {
+            CallOnDisconnected();
+        }
+        finally
+        {
+            _ws.Dispose();
+        }
+    }
+
+    private async void SendMessageAsync(string message)
     {
         if (_ws.State != WebSocketState.Open)
-        {
             throw new Exception("Connection is not open.");
-        }
-
+ 
         var messageBuffer = Encoding.UTF8.GetBytes(message);
         var messagesCount = (int)Math.Ceiling((double)messageBuffer.Length / SendChunkSize);
 
@@ -124,13 +154,9 @@ public class WebSocketWrapper
             var lastMessage = ((i + 1) == messagesCount);
 
             if ((count * (i + 1)) > messageBuffer.Length)
-            {
                 count = messageBuffer.Length - offset;
-            }
-
-            sendMutex.WaitOne();
-            _ws.SendAsync(new ArraySegment<byte>(messageBuffer, offset, count), WebSocketMessageType.Text, lastMessage, _cancellationToken).Wait();
-            sendMutex.ReleaseMutex();
+    
+            await _ws.SendAsync(new ArraySegment<byte>(messageBuffer, offset, count), WebSocketMessageType.Text, lastMessage, _cancellationToken);
         }
     }
 

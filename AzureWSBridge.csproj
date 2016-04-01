@@ -60,7 +60,7 @@
     <Compile Include="Responses\GetLocationsResponse.cs" />
     <Compile Include="Responses\LocationDTO.cs" />
     <Compile Include="Responses\LoginResponse.cs" />
-    <Compile Include="MainClass.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Responses\Response.cs" />
     <Compile Include="Responses\SubscribeData.cs" />
     <Compile Include="Requests\LoginRequest.cs" />

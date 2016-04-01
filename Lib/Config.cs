@@ -1,19 +1,25 @@
-﻿using System;
-using System.Configuration;
+﻿using System.Configuration;
 
 namespace AzureWSBridge.Lib
 {
-    class Config
+    internal static class Config
     {
+        private static readonly string _sectionName = "appSettings";
+        private static KeyValueConfigurationCollection _settings;
+
+        private static void ReadSettings()
+        {
+            if (_settings != null)
+                return;
+
+            var section = (AppSettingsSection) ConfigurationManager.GetSection(_sectionName);
+            _settings = section.Settings;
+        }
+
         public static string ReadSetting(string key)
         {
-            var value = ConfigurationManager.AppSettings[key];
-            if(value == null)
-            {
-                Console.WriteLine("Missing configuration key ", key);
-                System.Environment.Exit(1);
-            }
-            return value;
+            ReadSettings();
+            return _settings[key].Value;
         }
     }
 }

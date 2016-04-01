@@ -17,7 +17,8 @@ namespace AzureWSBridge.Lib
                 return;
 
             // Fetch the KeyValueConfigurationCollection with all the settings in SectionName
-            var section = (AppSettingsSection) ConfigurationManager.GetSection(SectionName);
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var section = (AppSettingsSection) config.GetSection(SectionName);
             _settings = section.Settings;
         }
 

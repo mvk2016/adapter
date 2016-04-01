@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-public class LoginResponse : Response
+namespace AzureWSBridge.Responses
 {
-    public string sessionId;
-    public Dictionary<string, string> responseCode;
-
-    public override void Action()
+    public class LoginResponse : Response
     {
-        if (responseCode["name"] != "success")
+        public string sessionId;
+        public Dictionary<string, string> responseCode;
+
+        public override void Action()
         {
-            Console.WriteLine("Login failed");
-        }
-        else
-        {
-            Console.WriteLine("Login success");
+            if (responseCode["name"] != "success")
+            {
+                Console.WriteLine("Login failed");
+            }
+            else
+            {
+                Console.WriteLine("Login success");
+            }
         }
     }
 }

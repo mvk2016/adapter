@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using AzureWSBridge.DataSources;
 
-public class Program
-{
-    static void Main()
+namespace AzureWSBridge
+{    
+    public class Program
     {
-        new YanziConnector();
-        Console.ReadLine();
-    }
+        static void Main()
+        {
+            new CirrusDataSource();
+            Console.ReadLine();
+        }
 
+    }
 }

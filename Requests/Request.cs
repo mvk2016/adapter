@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-public abstract class Request
+namespace AzureWSBridge.Requests
 {
-    public string messageType;
-    public DateTime timeSent;
-    public Request()
+    public abstract class Request
     {
-        this.messageType = this.GetType().ToString();
+        public string messageType;
+        public DateTime timeSent;
+        public Request()
+        {
+            this.messageType = this.GetType().ToString();
+        }
     }
 }

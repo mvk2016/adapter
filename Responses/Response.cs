@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-public class Response
+namespace AzureWSBridge.Responses
 {
-    public string messageType;
-    public long timeSent;
-
-    public virtual void Action()
+    public class Response
     {
-        Console.WriteLine(messageType);
+        public string messageType;
+        public long timeSent;
+
+        public virtual void Action()
+        {
+            Console.WriteLine(messageType);
+        }
     }
 }

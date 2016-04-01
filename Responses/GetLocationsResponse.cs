@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-public class GetLocationsResponse : Response
+namespace AzureWSBridge.Responses
 {
-    public Dictionary<string, string> responseCode;
-    public List<LocationDTO> list;
+    public class GetLocationsResponse : Response
+    {
+        public Dictionary<string, string> responseCode;
+        public List<LocationDTO> list;
+    }
 }

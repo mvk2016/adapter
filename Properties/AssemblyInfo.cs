@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ConsoleApplication1")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("AzureWSBridge")]
+[assembly: AssemblyDescription("Adapter to feed Yanzi Cirrus API data into Azure Event Hub and vice versa")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft Corporation")]
-[assembly: AssemblyProduct("ConsoleApplication1")]
-[assembly: AssemblyCopyright("Copyright © Microsoft Corporation 2016")]
+[assembly: AssemblyCompany("Yanzi Networks AB")]
+[assembly: AssemblyProduct("AzureWSBridge")]
+[assembly: AssemblyCopyright("Copyright © Yanzi Networks AB 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

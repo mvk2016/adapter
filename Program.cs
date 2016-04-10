@@ -8,12 +8,8 @@ namespace AzureWSBridge
     {
         public static void Main(string[] args)
         {
-            /*
+            
             new CirrusDataSource();
-            Console.ReadLine();
-            */
-
-            Console.WriteLine(Config.ReadSetting("YanziHost"));
             Console.ReadLine();
         }
 

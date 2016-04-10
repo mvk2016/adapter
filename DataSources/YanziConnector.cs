@@ -4,6 +4,8 @@ using System.Threading;
 using AzureWSBridge.Lib;
 using AzureWSBridge.Requests;
 using AzureWSBridge.Responses;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace AzureWSBridge.DataSources
 {
@@ -25,9 +27,10 @@ namespace AzureWSBridge.DataSources
 
         void OnMessage(string message, WebSocketWrapper ws)
         {
+            Console.WriteLine(message);
             if (message == null || message == "")
                 return;
-
+            
             try
             {
                 // json.ParseMessage<Response>(message).Action();
@@ -66,7 +69,7 @@ namespace AzureWSBridge.DataSources
                 unitAddress = new { locationId = Config.ReadSetting("YanziLocation") },
                 subscriptionType = new { name = "default", resourceType = "SubscriptionType" }
             };
-            // socket.SendMessage(json.MakeRequest(subscribeRequest));
+            // socket.SendMessage(JsonConvert.SerializeObject(subscribeRequest));
         }
         /// <summary>
         /// Connects to Cirrus
@@ -83,14 +86,14 @@ namespace AzureWSBridge.DataSources
             socket.Connect();
 
             // Wait until socket is no longer trying to connect
-            // while (socket.State() == WebSocketState.Connecting)
+            while (socket.State() == WebSocketState.Connecting)
             {
-                Thread.Sleep(100);
                 Console.WriteLine("Connecting");
+                Thread.Sleep(50);
 
             }
 
-            // if (socket.State() != WebSocketState.Open)
+            if (socket.State() != WebSocketState.Open)
             {
                 Console.WriteLine("Could not connect to Cirrus");
                 return false;
@@ -104,9 +107,9 @@ namespace AzureWSBridge.DataSources
             {
                 username = Config.ReadSetting("YanziUser"),
                 password = Config.ReadSetting("YanziPass"),
-                timeSent = DateTime.Now
             };
-            // socket.SendMessage(json.MakeRequest(loginRequest));
+            string json = JsonConvert.SerializeObject(loginRequest);
+            socket.SendMessage(json);
         }
 
         public void Close()

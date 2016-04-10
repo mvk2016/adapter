@@ -82,6 +82,11 @@ namespace AzureWSBridge.Lib
             return this;
         }
 
+        public WebSocketState State()
+        {
+            return _ws.State;
+        }
+
         /// <summary>
         /// Send a message to the WebSocket server.
         /// </summary>

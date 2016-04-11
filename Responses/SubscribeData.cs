@@ -4,18 +4,12 @@ using AzureWSBridge.DataTargets;
 
 namespace AzureWSBridge.Responses
 {
-    class SubscribeData : Response
-    {
-        //public string Message { get; set; }
-        // public static JSONConverter json = new JSONConverter();
+    class SubscribeData : Response {
 
-        public List<Object> list;
-        public override void Action()
+        public override void Action(string message)
         {
-            base.Action();
-            // string req = json.MakeRequest(list[0]);
-            //Console.WriteLine(req);
-            // EventHubConnector.SendMessage(req);
+            base.Action(message);
+            EventHubConnector.SendMessage(message);
         }
     }
 }

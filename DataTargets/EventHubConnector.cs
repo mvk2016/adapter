@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using AzureWSBridge.Lib;
 using Microsoft.ServiceBus.Messaging;
+using System;
 
 namespace AzureWSBridge.DataTargets
 {
@@ -14,6 +15,7 @@ namespace AzureWSBridge.DataTargets
 
         static public void SendMessage(string message)
         {
+            Console.WriteLine("Sending to Event Hub");
             eventHubClient.Send(new EventData(Encoding.UTF8.GetBytes(message)));
         }
     }

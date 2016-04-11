@@ -78,7 +78,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Lib\Config.cs" />
-    <Compile Include="DataSources\IDataSource.cs" />
     <Compile Include="Responses\GetLocationsResponse.cs" />
     <Compile Include="Responses\LocationDTO.cs" />
     <Compile Include="Responses\LoginResponse.cs" />
@@ -88,7 +87,7 @@
     <Compile Include="Requests\LoginRequest.cs" />
     <Compile Include="Requests\Request.cs" />
     <Compile Include="DataTargets\EventHubConnector.cs" />
-    <Compile Include="DataSources\YanziConnector.cs" />
+    <Compile Include="DataSources\CirrusDataSource.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Requests\SubscribeRequest.cs" />
     <Compile Include="Lib\WebSocketWrapper.cs" />

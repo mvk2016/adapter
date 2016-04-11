@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace AzureWSBridge.Responses
 {
@@ -8,16 +9,20 @@ namespace AzureWSBridge.Responses
         public string sessionId;
         public Dictionary<string, string> responseCode;
 
-        public override void Action()
+        public override void Action(string message)
         {
-            if (responseCode["name"] != "success")
+            base.Action(message);
+            LoginResponse r = JsonConvert.DeserializeObject<LoginResponse>(message);
+            
+            if (r.responseCode["name"] != "success")
             {
-                Console.WriteLine("Login failed");
+                throw new Exception("Login failed");
             }
             else
             {
                 Console.WriteLine("Login success");
             }
+            
         }
     }
 }

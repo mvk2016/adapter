@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace AzureWSBridge.Lib
 {
     /// <summary>
-    /// Originally written by xamlmonkey, with OnReceive logic added by Mauritz Zachrisson
+    /// Originally written by xamlmonkey, with smaller changes and additions by Emma Nimstad
     /// See https://gist.github.com/xamlmonkey/4737291
     /// </summary>
     public class WebSocketWrapper
@@ -48,7 +48,7 @@ namespace AzureWSBridge.Lib
         /// <returns></returns>
         public WebSocketWrapper Connect()
         {
-            ConnectAsync();
+            ConnectAsync().Wait();
             return this;
         }
 
@@ -82,9 +82,21 @@ namespace AzureWSBridge.Lib
             return this;
         }
 
+        /// <summary>
+        /// Get the state of the websocket
+        /// </summary>
         public WebSocketState State()
         {
             return _ws.State;
+        }
+
+        /// <summary>
+        /// Close the websocket
+        /// </summary>
+        public void Close()
+        {
+            if(_ws.State == WebSocketState.Open)
+                _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "", _cancellationToken);
         }
 
         /// <summary>
@@ -96,60 +108,10 @@ namespace AzureWSBridge.Lib
             SendMessageAsync(message);
         }
 
-        /// <summary>
-        /// Wait for the reception of a single string message, then run a given Action.
-        /// </summary>
-        /// <param name="onReceive">The Action to call.</param>
-        public WebSocketWrapper ReceiveMessage(Action<WebSocketWrapper> onReceive)
-        {
-            ReceiveMessageAsync(onReceive);
-            return this;
-        }
-
-        private async void ReceiveMessageAsync(Action<WebSocketWrapper> onReceive)
-        {
-            var buffer = new byte[ReceiveChunkSize];
-
-            try
-            {
-                var stringResult = new StringBuilder();
-
-                WebSocketReceiveResult result;
-                do
-                {
-                    result = await _ws.ReceiveAsync(new ArraySegment<byte>(buffer), _cancellationToken);
-
-                    if (result.MessageType == WebSocketMessageType.Close)
-                    {
-                        await
-                            _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
-                        CallOnDisconnected();
-                    }
-                    else
-                    {
-                        var str = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        stringResult.Append(str);
-                    }
-
-                } while (!result.EndOfMessage);
-
-                if (_onMessage != null)
-                    RunInTask(() => onReceive(this));
-            }
-            catch (Exception)
-            {
-                CallOnDisconnected();
-            }
-            finally
-            {
-                _ws.Dispose();
-            }
-        }
-
         private async void SendMessageAsync(string message)
         {
             if (_ws.State != WebSocketState.Open)
-                throw new Exception("Connection is not open.");
+                throw new WebSocketException(WebSocketError.InvalidState, "Connection is not open.");
  
             var messageBuffer = Encoding.UTF8.GetBytes(message);
             var messagesCount = (int)Math.Ceiling((double)messageBuffer.Length / SendChunkSize);
@@ -167,7 +129,7 @@ namespace AzureWSBridge.Lib
             }
         }
 
-        private async void ConnectAsync()
+        private async Task ConnectAsync()
         {
             await _ws.ConnectAsync(_uri, _cancellationToken);
             CallOnConnected();

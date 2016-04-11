@@ -25,43 +25,37 @@ namespace AzureWSBridge.DataSources
             Subscribe();
         }
 
+        /// <summary>
+        /// The function to be called for each message received on listening websocket
+        /// </summary>
+        /// <param name="message">The message received</param>
+        /// <param name="ws">The websocket on which the message was received</param>
         void OnMessage(string message, WebSocketWrapper ws)
         {
-            Console.WriteLine(message);
             if (message == null || message == "")
                 return;
             
             try
             {
-                // json.ParseMessage<Response>(message).Action();
-
-                /*var type = json.ParseMessage<Response>(message).messageType;
-
-            Response response = new Response();
-
-            Type t = Type.GetType(type);
-
-            if (t == null) t = typeof(Response);
-           
-            MethodInfo method = typeof(JSONConverter).GetMethod("ParseResponse");
-            MethodInfo generic = method.MakeGenericMethod(t);
-            response = generic.Invoke(json, new object[]{ message }) as Response;
-
-            response.Action();*/
+                Response response = JsonConvert.DeserializeObject<Response>(message);
+                response.Handle(message);
+            }
+            catch (WebSocketException e)
+            {
+                Console.WriteLine("Exception in websocket:");
+                Console.WriteLine(e);
             }
             catch (Exception e)
             {
                 Console.WriteLine(message);
-                Console.WriteLine(e);
-                Close();
-                return;
+                Console.WriteLine("{0}: {1}", e.GetType(), e.Message);
+                ws.Close();
             }
         }
 
         /// <summary>
-        /// Subscribes to given location
+        /// Subscribes to config locations
         /// </summary>
-        /// <param name="locationId">ID of location to subscribe to</param>
         public void Subscribe()
         {
             var subscribeRequest = new SubscribeRequest()
@@ -83,20 +77,21 @@ namespace AzureWSBridge.DataSources
             socket.OnMessage(OnMessage);
             socket.OnDisconnect((WebSocketWrapper ws) => Console.WriteLine("Has disconnected"));
 
-            socket.Connect();
-
-            // Wait until socket is no longer trying to connect
-            while (socket.State() == WebSocketState.Connecting)
+            try
             {
-                Console.WriteLine("Connecting");
-                Thread.Sleep(50);
-
+                socket.Connect();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Could not connect to Cirrus");
+                //Console.WriteLine(e);
+                return false;
             }
 
             if (socket.State() != WebSocketState.Open)
             {
-                Console.WriteLine("Could not connect to Cirrus");
-                return false;
+            Console.WriteLine("Could not connect to Cirrus");
+            return false;
             }
             return true;
         }
@@ -110,11 +105,6 @@ namespace AzureWSBridge.DataSources
             };
             string json = JsonConvert.SerializeObject(loginRequest);
             socket.SendMessage(json);
-        }
-
-        public void Close()
-        {
-            // socket.Close();
         }
     }
 }

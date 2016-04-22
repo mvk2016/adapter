@@ -18,6 +18,10 @@ namespace AzureWSBridge.DataSources
 
         public CirrusDataSource()
         {
+            Create();
+        }
+        private void Create()
+        {
             if (!Connect()) return;
 
             Login();
@@ -32,6 +36,7 @@ namespace AzureWSBridge.DataSources
         /// <param name="ws">The websocket on which the message was received</param>
         void OnMessage(string message, WebSocketWrapper ws)
         {
+            Console.WriteLine(message);
             if (message == null || message == "")
                 return;
             
@@ -63,7 +68,7 @@ namespace AzureWSBridge.DataSources
                 unitAddress = new { locationId = Config.ReadSetting("YanziLocation") },
                 subscriptionType = new { name = "default", resourceType = "SubscriptionType" }
             };
-            // socket.SendMessage(JsonConvert.SerializeObject(subscribeRequest));
+            socket.SendMessage(JsonConvert.SerializeObject(subscribeRequest));
         }
         /// <summary>
         /// Connects to Cirrus
@@ -75,7 +80,7 @@ namespace AzureWSBridge.DataSources
 
             socket.OnConnect((WebSocketWrapper ws) => Console.WriteLine("Has connected"));
             socket.OnMessage(OnMessage);
-            socket.OnDisconnect((WebSocketWrapper ws) => Console.WriteLine("Has disconnected"));
+            socket.OnDisconnect((WebSocketWrapper ws) => Create());
 
             try
             {

@@ -9,6 +9,7 @@ namespace AzureWSBridge.Responses
         public override void Action(string message)
         {
             base.Action(message);
+            Console.WriteLine("Sending to Event Hub");
             EventHubConnector.SendMessage(message);
         }
     }

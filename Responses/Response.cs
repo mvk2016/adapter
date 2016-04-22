@@ -10,7 +10,7 @@ namespace AzureWSBridge.Responses
 
         public virtual void Action(string message)
         {
-            Console.WriteLine(this.GetType().Name);
+            //Console.WriteLine(this.GetType().Name);
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using AzureWSBridge.DataSources;
 
 namespace AzureWSBridge.Responses
 {
@@ -9,9 +10,9 @@ namespace AzureWSBridge.Responses
         public string sessionId;
         public Dictionary<string, string> responseCode;
 
-        public override void Action(string message)
+        public override void Action(string message, CirrusDataSource cirrus)
         {
-            base.Action(message);
+            base.Action(message, cirrus);
             LoginResponse r = JsonConvert.DeserializeObject<LoginResponse>(message);
             
             if (r.responseCode["name"] != "success")

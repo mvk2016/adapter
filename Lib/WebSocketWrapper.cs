@@ -124,9 +124,17 @@ namespace AzureWSBridge.Lib
 
                 if ((count * (i + 1)) > messageBuffer.Length)
                     count = messageBuffer.Length - offset;
-    
-                await _ws.SendAsync(new ArraySegment<byte>(messageBuffer, offset, count), WebSocketMessageType.Text, lastMessage, _cancellationToken);
+                
+                try
+                {
+                    await _ws.SendAsync(new ArraySegment<byte>(messageBuffer, offset, count), WebSocketMessageType.Text, lastMessage, _cancellationToken);
+                }
+                catch (Exception e)
+                {
+                    i--;
+                }
             }
+                
         }
 
         private async Task ConnectAsync()

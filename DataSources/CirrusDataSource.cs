@@ -23,10 +23,10 @@ namespace AzureWSBridge.DataSources
         private void Create()
         {
             if (!Connect()) return;
-
+            Thread.Sleep(1000);
             Login();
-
-            Subscribe();
+            Thread.Sleep(1000);
+            //Subscribe();
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace AzureWSBridge.DataSources
             try
             {
                 Response response = JsonConvert.DeserializeObject<Response>(message);
-                response.Handle(message);
+                response.Handle(message, this);
             }
             catch (WebSocketException e)
             {
@@ -68,7 +68,11 @@ namespace AzureWSBridge.DataSources
                 unitAddress = new { locationId = Config.ReadSetting("YanziLocation") },
                 subscriptionType = new { name = "default", resourceType = "SubscriptionType" }
             };
-            socket.SendMessage(JsonConvert.SerializeObject(subscribeRequest));
+            //while(socket.State() == WebSocketState.Open)
+            //{
+                socket.SendMessage(JsonConvert.SerializeObject(subscribeRequest));
+                //Thread.Sleep(TimeSpan.FromHours(4));
+            //}
         }
         /// <summary>
         /// Connects to Cirrus
@@ -77,10 +81,6 @@ namespace AzureWSBridge.DataSources
         public bool Connect()
         {
             socket = WebSocketWrapper.Create(Config.ReadSetting("YanziHost"));
-
-            socket.OnConnect((WebSocketWrapper ws) => Console.WriteLine("Has connected"));
-            socket.OnMessage(OnMessage);
-            socket.OnDisconnect((WebSocketWrapper ws) => Create());
 
             try
             {
@@ -95,9 +95,15 @@ namespace AzureWSBridge.DataSources
 
             if (socket.State() != WebSocketState.Open)
             {
-            Console.WriteLine("Could not connect to Cirrus");
-            return false;
+                Console.WriteLine("Could not connect to Cirrus");
+                return false;
             }
+
+
+            socket.OnConnect((WebSocketWrapper ws) => Console.WriteLine("Has connected"));
+            socket.OnMessage(OnMessage);
+            socket.OnDisconnect((WebSocketWrapper ws) => Create());
+
             return true;
         }
 

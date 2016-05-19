@@ -15,7 +15,7 @@ namespace AzureWSBridge.DataTargets
 
         static public void SendMessage(string message)
         {
-            Console.WriteLine("Sending to Event Hub");
+            //Console.WriteLine("Sending to Event Hub");
             eventHubClient.Send(new EventData(Encoding.UTF8.GetBytes(message)));
         }
     }

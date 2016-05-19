@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using AzureWSBridge.DataSources;
 
 namespace AzureWSBridge.Responses
 {
@@ -8,7 +9,7 @@ namespace AzureWSBridge.Responses
         public string messageType;
         public long timeSent;
 
-        public virtual void Action(string message)
+        public virtual void Action(string message, CirrusDataSource cirrus)
         {
             //Console.WriteLine(this.GetType().Name);
         }
@@ -17,7 +18,7 @@ namespace AzureWSBridge.Responses
         /// Handles
         /// </summary>
         /// <param name="message"></param>
-        public void Handle(string message)
+        public void Handle(string message, CirrusDataSource cirrus)
         {
             Type type = Type.GetType(string.Format("{0}.{1}", this.GetType().Namespace, messageType));
 
@@ -27,7 +28,7 @@ namespace AzureWSBridge.Responses
             }
 
             Response r = Activator.CreateInstance(type) as Response;
-            r.Action(message);
+            r.Action(message, cirrus);
         }
     }
 }
